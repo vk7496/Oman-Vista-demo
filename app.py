@@ -1,57 +1,40 @@
 import streamlit as st
-from PIL import Image
 
-# ---------- Page Config ----------
-st.set_page_config(
-    page_title="OmanVista - AI Tourism Explorer",
-    page_icon="🌍",
-    layout="wide"
-)
+# App title
+st.set_page_config(page_title="OmanVista: AI Tourism Explorer", page_icon="🌍", layout="wide")
 
-# ---------- Language Selector ----------
-lang = st.sidebar.radio("🌐 Language | اللغة", ["English", "العربية"])
+# Header
+st.title("🌍 OmanVista: AI Tourism Explorer")
+st.markdown("### Discover the hidden gems of Oman with the power of Artificial Intelligence ✨")
 
-# ---------- Content Dictionary ----------
-content = {
-    "English": {
-        "title": "OmanVista: AI Tourism Explorer",
-        "subtitle": "Discover Oman’s hidden gems with the power of Artificial Intelligence",
-        "about": """
-            OmanVista is an **AI-powered tourism explorer** designed to showcase 
-            hidden attractions, cultural sites, and natural wonders of Oman.
-            
-            🎯 Our mission: To connect travelers with unique experiences using **AI insights**.
-        """,
-        "button": "🚀 Explore Oman",
-        "footer": "Made with ❤️ in Oman | Golden Bird"
-    },
-    "العربية": {
-        "title": "عُمان فيستا: مستكشف السياحة بالذكاء الاصطناعي",
-        "subtitle": "اكتشف جواهر عُمان المخفية بقوة الذكاء الاصطناعي",
-        "about": """
-            عُمان فيستا هو **مستكشف سياحي يعمل بالذكاء الاصطناعي** 
-            يهدف إلى عرض المعالم المخفية، المواقع الثقافية، 
-            والعجائب الطبيعية في عُمان.
-            
-            🎯 رسالتنا: ربط المسافرين بتجارب فريدة باستخدام **رؤى الذكاء الاصطناعي**.
-        """,
-        "button": "🚀 استكشف عُمان",
-        "footer": "صُنع بحب ❤️ في عُمان | Golden Bird"
-    }
-}
+# Sidebar
+st.sidebar.title("🔎 Explore")
+option = st.sidebar.radio("Choose a feature:", ["🏖 Attractions", "🗺 Map View", "📊 Insights"])
 
-# ---------- Layout ----------
-col1, col2 = st.columns([1,1])
-with col1:
-    st.image("https://upload.wikimedia.org/wikipedia/commons/8/81/Oman_Mountains.jpg", use_column_width=True)
+# Main content
+if option == "🏖 Attractions":
+    st.subheader("Top Recommended Attractions in Oman 🇴🇲")
+    attractions = [
+        {"name": "Wadi Shab", "desc": "A beautiful valley with turquoise pools and waterfalls."},
+        {"name": "Jebel Akhdar", "desc": "The Green Mountain, famous for terraced farms and cool weather."},
+        {"name": "Muttrah Corniche", "desc": "A scenic seaside promenade in Muscat."},
+        {"name": "Wahiba Sands", "desc": "Golden desert dunes perfect for adventure and stargazing."}
+    ]
+    for place in attractions:
+        st.markdown(f"#### 🌟 {place['name']}")
+        st.write(place['desc'])
+        st.image("https://source.unsplash.com/800x400/?oman," + place['name'].replace(" ", ""), use_column_width=True)
 
-with col2:
-    st.markdown(f"## {content[lang]['title']}")
-    st.markdown(f"### {content[lang]['subtitle']}")
-    st.write(content[lang]['about'])
-    if st.button(content[lang]['button']):
-        st.success("✨ Coming Soon: Interactive AI Tourism Map of Oman")
+elif option == "🗺 Map View":
+    st.subheader("Interactive Map 🗺")
+    st.map({"lat": [23.5880, 22.9600, 20.5600], "lon": [58.3829, 57.5300, 58.9000]})
 
-# ---------- Footer ----------
+elif option == "📊 Insights":
+    st.subheader("Tourism Insights 📊")
+    st.write("AI-based insights about tourism trends will appear here.")
+    st.progress(70)
+    st.success("Oman is becoming a rising hub for eco-tourism 🌱")
+
+# Footer
 st.markdown("---")
-st.markdown(f"<p style='text-align:center;'>{content[lang]['footer']}</p>", unsafe_allow_html=True)
+st.markdown("Built with ❤️ by **OmanVista Team**")
