@@ -2,63 +2,61 @@ import streamlit as st
 import requests
 import folium
 from streamlit_folium import st_folium
+import qrcode
+from io import BytesIO
 
-# -----------------------------
-# عنوان و توضیحات
-# -----------------------------
-st.set_page_config(page_title="OmanVista: AI Tourism Explorer", layout="wide")
+st.set_page_config(page_title="OmanVista Explorer", layout="wide")
 
 st.title("🏝️ OmanVista: AI Tourism Explorer")
-st.markdown("با این اپ می‌تونی جاذبه‌های گردشگری عمان رو روی نقشه ببینی و اطلاعات رو مستقیم از اینترنت دریافت کنی 🌍")
 
-# -----------------------------
-# گرفتن دیتای گردشگری از اینترنت (نمونه با API ویکی‌پدیا)
-# -----------------------------
-def fetch_places(query="tourist attractions in Oman"):
-    url = f"https://en.wikipedia.org/w/api.php?action=opensearch&search={query}&limit=5&namespace=0&format=json"
-    response = requests.get(url)
-    data = response.json()
+# تابع گرفتن مکان‌ها از اینترنت
+def fetch_places():
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": "tourist attractions in Oman",
+        "format": "json",
+        "limit": 10
+    }
+    headers = {"User-Agent": "OmanVistaApp/1.0"}
     
-    places = []
-    for i in range(len(data[1])):
-        places.append({
-            "name": data[1][i],
-            "desc": data[2][i],
-            "link": data[3][i],
-            # جای لوکیشن واقعی میشه بعدا از API دیگه گرفت (الان فقط مسقط به صورت پیش‌فرض)
-            "lat": 23.5880,
-            "lon": 58.3829
-        })
-    return places
+    response = requests.get(url, params=params, headers=headers)
+
+    # بررسی اینکه واقعا JSON هست یا نه
+    try:
+        return response.json()
+    except Exception:
+        st.error("⚠️ API جواب JSON نداد، احتمالا محدودیت یا خطا وجود داره.")
+        st.text(response.text[:500])  # برای دیباگ
+        return []
 
 places = fetch_places()
 
-# -----------------------------
-# انتخاب جاذبه
-# -----------------------------
-place_names = [p["name"] for p in places]
-selected_name = st.selectbox("یک مکان گردشگری انتخاب کن:", place_names)
+# نمایش مکان‌ها
+if places:
+    st.subheader("📍 Tourist Attractions in Oman")
+    for place in places:
+        st.write(f"**{place.get('display_name','Unknown')}**")
+    
+    # نقشه
+    first_lat = float(places[0]["lat"])
+    first_lon = float(places[0]["lon"])
+    map_osm = folium.Map(location=[first_lat, first_lon], zoom_start=6)
+    
+    for p in places:
+        folium.Marker(
+            [float(p["lat"]), float(p["lon"])],
+            popup=p.get("display_name", "Unknown")
+        ).add_to(map_osm)
 
-selected = next(p for p in places if p["name"] == selected_name)
+    st_folium(map_osm, width=700, height=500)
 
-# -----------------------------
-# نمایش اطلاعات
-# -----------------------------
-st.subheader(f"ℹ️ معرفی: {selected['name']}")
-st.write(selected["desc"])
-st.markdown(f"[🔗 اطلاعات بیشتر در ویکی‌پدیا]({selected['link']})")
+    # QR Code برای اولین مکان
+    st.subheader("📲 QR Code for Location")
+    loc_url = f"https://www.openstreetmap.org/?mlat={first_lat}&mlon={first_lon}&zoom=12"
+    qr = qrcode.make(loc_url)
+    buf = BytesIO()
+    qr.save(buf, format="PNG")
+    st.image(buf.getvalue(), caption="Scan to view on map")
 
-# -----------------------------
-# نقشه تعاملی
-# -----------------------------
-st.subheader("🗺️ Interactive Map")
-
-m = folium.Map(location=[selected["lat"], selected["lon"]], zoom_start=7)
-
-# مارکر درست‌شده (بدون ارور کوتیشن)
-folium.Marker(
-    [selected["lat"], selected["lon"]],
-    popup=selected["name"]
-).add_to(m)
-
-st_data = st_folium(m, width=700, height=500)
+else:
+    st.warning("هیچ مکانی پیدا نشد.")
