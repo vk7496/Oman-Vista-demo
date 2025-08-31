@@ -1,62 +1,30 @@
-import streamlit as st
 import requests
-import folium
-from streamlit_folium import st_folium
-import qrcode
-from io import BytesIO
+import streamlit as st
 
-st.set_page_config(page_title="OmanVista Explorer", layout="wide")
+UNSPLASH_ACCESS_KEY = "7MjJqxvtlvgkayIdLZM69n4yFIol0J6cjxeRvciMznQ"  # اینو جایگزین کن
 
-st.title("🏝️ OmanVista: AI Tourism Explorer")
-
-# تابع گرفتن مکان‌ها از اینترنت
-def fetch_places():
-    url = "https://nominatim.openstreetmap.org/search"
+def fetch_images(query, count=5):
+    url = f"https://api.unsplash.com/search/photos"
     params = {
-        "q": "tourist attractions in Oman",
-        "format": "json",
-        "limit": 10
+        "query": query,
+        "per_page": count,
+        "client_id": UNSPLASH_ACCESS_KEY
     }
-    headers = {"User-Agent": "OmanVistaApp/1.0"}
-    
-    response = requests.get(url, params=params, headers=headers)
-
-    # بررسی اینکه واقعا JSON هست یا نه
-    try:
-        return response.json()
-    except Exception:
-        st.error("⚠️ API جواب JSON نداد، احتمالا محدودیت یا خطا وجود داره.")
-        st.text(response.text[:500])  # برای دیباگ
+    response = requests.get(url, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        return [img["urls"]["regular"] for img in data["results"]]
+    else:
+        st.error("خطا در گرفتن تصاویر از Unsplash")
         return []
 
-places = fetch_places()
+st.title("🌍 OmanVista - AI Tourism Explorer")
 
-# نمایش مکان‌ها
-if places:
-    st.subheader("📍 Tourist Attractions in Oman")
-    for place in places:
-        st.write(f"**{place.get('display_name','Unknown')}**")
-    
-    # نقشه
-    first_lat = float(places[0]["lat"])
-    first_lon = float(places[0]["lon"])
-    map_osm = folium.Map(location=[first_lat, first_lon], zoom_start=6)
-    
-    for p in places:
-        folium.Marker(
-            [float(p["lat"]), float(p["lon"])],
-            popup=p.get("display_name", "Unknown")
-        ).add_to(map_osm)
+place = st.text_input("یک مکان یا موضوع گردشگری وارد کنید:", "Oman nature")
 
-    st_folium(map_osm, width=700, height=500)
+if st.button("جستجو"):
+    images = fetch_images(place, count=6)
+    if images:
+        for img in images:
+            st.image(img, use_container_width=True)
 
-    # QR Code برای اولین مکان
-    st.subheader("📲 QR Code for Location")
-    loc_url = f"https://www.openstreetmap.org/?mlat={first_lat}&mlon={first_lon}&zoom=12"
-    qr = qrcode.make(loc_url)
-    buf = BytesIO()
-    qr.save(buf, format="PNG")
-    st.image(buf.getvalue(), caption="Scan to view on map")
-
-else:
-    st.warning("هیچ مکانی پیدا نشد.")
