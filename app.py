@@ -20,9 +20,8 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
-# ---------- Secrets / Keys ----------
-OPENAI_KEY = st.secrets.get("OPENAI_API_KEY", "")
-UNSPLASH_KEY = st.secrets.get("UNSPLASH_ACCESS_KEY", "7MjJqxvtlvgkayIdLZM69n4yFIol0J6cjxeRvciMznQ")
+# ---------- Secrets / Keys 
+UNSPLASH_KEY = st.secrets.get( "7MjJqxvtlvgkayIdLZM69n4yFIol0J6cjxeRvciMznQ")
 
 # ---------- Language Selector ----------
 lang = st.sidebar.radio("🌐 Language | اللغة", ["English", "العربية"], index=0)
