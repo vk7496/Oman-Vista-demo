@@ -1,4 +1,6 @@
 streamlit
-pillow
-streamlit-folium
 folium
+streamlit-folium
+requests
+feedparser
+
