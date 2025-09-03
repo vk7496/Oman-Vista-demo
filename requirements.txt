@@ -3,4 +3,4 @@ folium
 streamlit-folium
 requests
 feedparser
-
+openai
